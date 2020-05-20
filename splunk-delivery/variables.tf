@@ -2,7 +2,8 @@
 
 # meta
 variable "prefix" {
-  default = "splunk-test"
+  default     = "splunk-test"
+  description = "Prefix for naming resources"
 }
 
 variable "tags" {
@@ -79,8 +80,9 @@ variable "s3_prefix" {
 
 # cw logs
 variable "sender_account_ids" {
-  type    = list
-  default = []
+  type        = list
+  default     = []
+  description = "List of AWS account ids to allow subscription to cloudwatch destination."
 }
 
 variable "cloudwatch_log_retention" {
