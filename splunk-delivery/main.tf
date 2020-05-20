@@ -65,14 +65,15 @@ data "archive_file" "lambda" {
 
 resource "aws_lambda_function" "this" {
   function_name    = join("-", [var.prefix, local.lambda_name])
-  description      = "lambda for splunk streaming"
+  description      = "Transform data from CloudWatch format to Splunk compatible format"
   role             = aws_iam_role.lambda.arn
   memory_size      = var.memory_size
   runtime          = var.nodejs_runtime
   timeout          = var.timeout
-  handler          = "lambda-cw-transform.handler"
-  filename         = "${path.module}/lambda/${local.lambda_name}.zip"
+  handler          = "kinesis-firehose-cloudwatch-logs-processor.handler"
+  filename         = data.archive_file.lambda.output_path
   source_code_hash = data.archive_file.lambda.output_base64sha256
+  tags             = var.tags
 }
 
 # create iam role for firehose lambda function

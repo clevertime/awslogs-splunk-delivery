@@ -1,3 +1,15 @@
+# Usage
+__example__
+```
+
+module "splunk_delivery" {
+  source           = "../splunk-delivery"
+  splunk_hec_url   = var.splunk_hec_url
+  splunk_hec_token = var.splunk_hec_token
+  prefix           = "test"
+}
+```
+
 ## Requirements
 
 No requirements.
