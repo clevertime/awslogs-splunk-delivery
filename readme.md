@@ -10,7 +10,7 @@ module "splunk_delivery" {
 }
 ```
 
-**see** `./tests/example.tf`
+see `./tests/example.tf`
 
 ## Requirements
 
