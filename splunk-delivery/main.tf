@@ -4,9 +4,9 @@ data "aws_region" "this" {}
 
 # locals
 locals {
-  lambda_name       = "lambda-cw-transform"
-  account_id        = data.aws_caller_identity.this.account_id
-  region            = data.aws_region.this.name
+  lambda_name = "lambda-cw-transform"
+  account_id  = data.aws_caller_identity.this.account_id
+  region      = data.aws_region.this.name
 }
 
 ##################
@@ -147,7 +147,7 @@ data "aws_iam_policy_document" "firehose" {
 }
 
 resource "aws_iam_policy" "firehose" {
-  name   = join("-",[var.prefix,"splunk-delivery-stream"])
+  name   = join("-", [var.prefix, "splunk-delivery-stream"])
   policy = data.aws_iam_policy_document.firehose.json
 }
 
@@ -157,7 +157,7 @@ resource "aws_iam_role_policy_attachment" "firehose" {
 }
 
 resource "aws_kinesis_firehose_delivery_stream" "this" {
-  name        = join("-",[var.prefix,"splunk-delivery-stream"])
+  name        = join("-", [var.prefix, "splunk-delivery-stream"])
   destination = "splunk"
 
   s3_configuration {
@@ -205,7 +205,7 @@ resource "aws_kinesis_firehose_delivery_stream" "this" {
 
 # error bucket
 resource "aws_s3_bucket" "failures" {
-  bucket_prefix  = join("-", [var.prefix, "delivery-failures-"])
+  bucket_prefix = join("-", [var.prefix, "delivery-failures-"])
 
   server_side_encryption_configuration {
     rule {
@@ -229,7 +229,7 @@ resource "aws_s3_bucket" "failures" {
 
 # cloudwatch logging group for firehose
 resource "aws_cloudwatch_log_group" "kinesis_logs" {
-  name              = "/aws/kinesisfirehose/${join("-",[var.prefix,"splunk-delivery-stream"])}"
+  name              = "/aws/kinesisfirehose/${join("-", [var.prefix, "splunk-delivery-stream"])}"
   retention_in_days = var.cloudwatch_log_retention
 
   tags = var.tags
@@ -237,7 +237,7 @@ resource "aws_cloudwatch_log_group" "kinesis_logs" {
 
 # stream for firehose logs
 resource "aws_cloudwatch_log_stream" "kinesis_logs" {
-  name           = join("-",[var.prefix,"kinesis-log-stream"])
+  name           = join("-", [var.prefix, "kinesis-log-stream"])
   log_group_name = aws_cloudwatch_log_group.kinesis_logs.name
 }
 
