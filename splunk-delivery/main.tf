@@ -9,6 +9,9 @@ locals {
   region            = data.aws_region.this.name
 }
 
+##################
+# lambda
+##################
 # create iam role for firehose lambda function
 resource "aws_iam_role" "lambda" {
   name               = join("-", [var.prefix, "lambda"])
@@ -56,7 +59,6 @@ resource "aws_iam_role_policy" "lambda" {
 EOF
 }
 
-# lambda
 data "archive_file" "lambda" {
   type        = "zip"
   source_dir  = "${path.module}/lambda/${local.lambda_name}/"
@@ -76,7 +78,11 @@ resource "aws_lambda_function" "this" {
   tags             = var.tags
 }
 
-# create iam role for firehose lambda function
+##################
+# firehose
+##################
+
+# create iam role for firehose
 resource "aws_iam_role" "firehose" {
   name               = join("-", [var.prefix, "firehose"])
   assume_role_policy = <<EOF
@@ -215,6 +221,11 @@ resource "aws_s3_bucket" "failures" {
 
   tags = var.tags
 }
+
+
+##################
+# cloudwatch 
+##################
 
 # cloudwatch logging group for firehose
 resource "aws_cloudwatch_log_group" "kinesis_logs" {
