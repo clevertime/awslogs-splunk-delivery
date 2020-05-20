@@ -15,9 +15,10 @@ variable "splunk_hec_url" {}
 
 variable "splunk_hec_token" {}
 
+# run module
 module "splunk_delivery" {
   source           = "../splunk-delivery"
   splunk_hec_url   = var.splunk_hec_url
   splunk_hec_token = var.splunk_hec_token
-  prefix           = "svb-splunk-test"
+  prefix           = "test"
 }
