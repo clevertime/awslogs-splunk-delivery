@@ -96,52 +96,58 @@ EOF
 }
 
 # firehose iam policy
-resource "aws_iam_role_policy" "firehose" {
-  name   = join("-", [var.prefix, "firehose"])
-  role   = aws_iam_role.lambda.name
-  policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Sid": "",
-      "Effect": "Allow",
-      "Action": [
-        "s3:AbortMultipartUpload",
-        "s3:GetBucketLocation",
-        "s3:GetObject",
-        "s3:ListBucket",
-        "s3:ListBucketMultipartUploads",
-        "s3:PutObject"
-      ],
-      "Resource": [
-        "arn:aws:s3:::${aws_s3_bucket.failures.id}",
-        "arn:aws:s3:::${aws_s3_bucket.failures.id}/*"
-      ]
-    },
-    {
-      "Sid": "",
-      "Effect": "Allow",
-      "Action": [
-        "lambda:InvokeFunction",
-        "lambda:GetFunctionConfiguration"
-      ],
-      "Resource": "arn:aws:lambda:${local.region}:${local.account_id}:function:${aws_lambda_function.this.function_name}:$LATEST"
-    },
-    {
-      "Sid": "",
-      "Effect": "Allow",
-      "Action": [
-        "logs:PutLogEvents"
-      ],
-      "Resource": [
-        ${aws_cloudwatch_log_group.kinesis_logs.arn},
-        ${aws_cloudwatch_log_stream.kinesis_logs.arn}
-      ]
-    }
-  ]
+data "aws_iam_policy_document" "firehose" {
+  statement {
+    actions = [
+      "s3:AbortMultipartUpload",
+      "s3:GetBucketLocation",
+      "s3:GetObject",
+      "s3:ListBucket",
+      "s3:ListBucketMultipartUploads",
+      "s3:PutObject",
+    ]
+
+    resources = [
+      aws_s3_bucket.failures.arn,
+      "${aws_s3_bucket.failures.arn}/*",
+    ]
+
+    effect = "Allow"
+  }
+
+  statement {
+    actions = [
+      "lambda:InvokeFunction",
+      "lambda:GetFunctionConfiguration",
+    ]
+
+    resources = [
+      "${aws_lambda_function.this.arn}:$LATEST",
+    ]
+  }
+
+  statement {
+    actions = [
+      "logs:PutLogEvents",
+    ]
+
+    resources = [
+      aws_cloudwatch_log_group.kinesis_logs.arn,
+      aws_cloudwatch_log_stream.kinesis_logs.arn,
+    ]
+
+    effect = "Allow"
+  }
 }
-EOF
+
+resource "aws_iam_policy" "firehose" {
+  name   = join("-",[var.prefix,"splunk-delivery-stream"])
+  policy = data.aws_iam_policy_document.firehose.json
+}
+
+resource "aws_iam_role_policy_attachment" "firehose" {
+  role       = aws_iam_role.firehose.name
+  policy_arn = aws_iam_policy.firehose.arn
 }
 
 resource "aws_kinesis_firehose_delivery_stream" "this" {
@@ -225,7 +231,7 @@ resource "aws_cloudwatch_log_stream" "kinesis_logs" {
 }
 
 # create iam role for cw destination
-resource "aws_iam_role" "cw" {
+resource "aws_iam_role" "cloudwatch" {
   name               = join("-", [var.prefix, "cw"])
   assume_role_policy = <<EOF
 {
@@ -244,30 +250,46 @@ EOF
 }
 
 # cw destination iam policy
-resource "aws_iam_role_policy" "cw" {
-  name   = join("-", [var.prefix, "cw"])
-  role   = aws_iam_role.cw.name
-  policy = <<EOF
-{
-    "Statement":[
-      {
-        "Effect":"Allow",
-        "Action":["firehose:*"],
-        "Resource":["${aws_kinesis_firehose_delivery_stream.this.arn}"]
-      },
-      {
-        "Effect":"Allow",
-        "Action":["iam:PassRole"],
-        "Resource":["arn:aws:iam::${aws_iam_role.cw.arn}"]
-      }
+data "aws_iam_policy_document" "cloudwatch" {
+  statement {
+    actions = [
+      "firehose:*",
     ]
+
+    effect = "Allow"
+
+    resources = [
+      aws_kinesis_firehose_delivery_stream.this.arn,
+    ]
+  }
+
+  statement {
+    actions = [
+      "iam:PassRole",
+    ]
+
+    effect = "Allow"
+
+    resources = [
+      aws_iam_role.cloudwatch.arn,
+    ]
+  }
 }
-EOF
+
+resource "aws_iam_policy" "cloudwatch" {
+  name        = join("-", [var.prefix, "cw"])
+  description = "Cloudwatch to Firehose Subscription Policy"
+  policy      = data.aws_iam_policy_document.cloudwatch.json
+}
+
+resource "aws_iam_role_policy_attachment" "cloudwatch" {
+  role       = aws_iam_role.cloudwatch.name
+  policy_arn = aws_iam_policy.cloudwatch.arn
 }
 
 resource "aws_cloudwatch_log_destination" "this" {
   name       = join("-", [var.prefix, "splunk-logs-destination"])
-  role_arn   = aws_iam_role.cw.arn
+  role_arn   = aws_iam_role.cloudwatch.arn
   target_arn = aws_kinesis_firehose_delivery_stream.this.arn
 }
 
