@@ -224,7 +224,7 @@ resource "aws_s3_bucket" "failures" {
 
 
 ##################
-# cloudwatch 
+# cloudwatch
 ##################
 
 # cloudwatch logging group for firehose
