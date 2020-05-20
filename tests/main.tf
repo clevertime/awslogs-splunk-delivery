@@ -9,9 +9,7 @@ variable "region" {
   default = "us-west-2"
 }
 
-variable "profile" {
-  default = "isengard-sbx"
-}
+variable "profile" {}
 
 variable "splunk_hec_url" {}
 
