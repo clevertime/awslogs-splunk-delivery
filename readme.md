@@ -1,5 +1,5 @@
 # Usage
-__example__
+__example:__
 ```
 
 module "splunk_delivery" {
@@ -9,6 +9,8 @@ module "splunk_delivery" {
   prefix           = "test"
 }
 ```
+
+**see** `./tests/example.tf`
 
 ## Requirements
 
