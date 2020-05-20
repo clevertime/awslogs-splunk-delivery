@@ -13,9 +13,13 @@ variable "profile" {
   default = "isengard-sbx"
 }
 
+variable "splunk_hec_url" {}
+
+variable "splunk_hec_token" {}
+
 module "splunk_delivery" {
-  source           = "./splunk-delivery"
-  splunk_hec_url   = "https://prd-p-sja86.splunkcloud.com:8080"
-  splunk_hec_token = "45f39c10-0876-4e25-9302-a976a9d58040"
+  source           = "../splunk-delivery"
+  splunk_hec_url   = var.splunk_hec_url
+  splunk_hec_token = var.splunk_hec_token
   prefix           = "svb-splunk-test"
 }
